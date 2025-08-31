@@ -1,8 +1,10 @@
 # 🧠 Omurcek Ai - Chatbot
+ 
+  A webbased toolset crafted by **Omurcek**, prinarily focused on chat
 
-A webbased toolset crafted by **Omurcek**, prinarily focused on chat
-
-## 📦 Features
+# Website - https://omurcekweb.pythonanywhere.com/chatbot
+ 
+ ## 📦 Features
 
 Omurcek ai includes 1 main Reason:
 
