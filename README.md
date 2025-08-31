@@ -53,4 +53,4 @@ Will there be updates? Maybe. If I feel like adding new stuff, I will. No promis
 All rights, trademarks, and original code belong to **Omurcek**.  
 You are **legally allowed** to make your own versions of this terminal — just don’t forget to credit me somewhere in your release.
 
-> ![Omurcek Aİ Website Menu]()
+> ![Omurcek Aİ Website Menu](https://github.com/omurcek/Omurcekai/blob/main/F70DA709-C480-4A6D-A437-638FEB955895.png)
