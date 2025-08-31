@@ -1,0 +1,20 @@
+# Discord bot configuration
+
+[commands]
+nuker = "allahu akbar"
+spammer = "salla"
+
+[message]
+amount = 100
+spam_message = "@everyone @here⠀⠀Nuked by ŏ̸̡̼̺̫̥̻͈̞̍͆̏̓́͜͝ͅm̵̢͕̫̓̔͑̊̈u̷̬̩̰̫͕̘͎̔́̃̄̍͋̓r̵̡͕͈͚͍͍̼͕̍̀̈́̽̎̍͗̍́̏̚͜͠c̵̛̥͊ë̸͓̮͉͈͇͍̖͎̩̞͈́́́̋̇̾͋̈́̾͆͑͘͘͜͠͝k̵̘̺̦͉͖̪̪͖͉͊̆̔́̈́̍̃̈́͒̂̑̀̚͜͝"⠀
+[server]
+name = "NUKED BY ФMЦЯҀЗК"
+
+[channel_names]
+names = ["konisikenteyze_35 odası", "nuked-by-bacı_hoplatan455"]
+
+[rate_limit]
+wait_time = 2  # Default wait time in seconds when rate limited
+
+[webhook]
+name = "Team-Serenity"

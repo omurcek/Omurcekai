@@ -1,0 +1,10 @@
+pyfiglet
+requests
+pystyle
+fade
+tkinter
+colorama
+asyncio
+discord
+toml
+socket

@@ -1,0 +1,21 @@
+# Discord bot configuration
+
+[commands]
+nuker = "cbum"
+spammer = "salla"
+
+[message]
+amount = 30
+spam_message = "@everyone NUKED WITH LAPIDARY :gem:"
+
+[server]
+name = "NUKED WITH LAPIDARY"
+
+[channel_names]
+names = ["lapidary", "nuked-by-lapidary"]
+
+[rate_limit]
+wait_time = 2  # Default wait time in seconds when rate limited
+
+[webhook]
+name = "Lapidary"
