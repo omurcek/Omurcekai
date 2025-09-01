@@ -1,6 +1,6 @@
 # 🧠 Omurcek Ai - Chatbot
 ![Omurcek Ai Logo](https://github.com/omurcek/Omurcekai/blob/main/0915%20(1)-Cover.jpg)
-  A webbased toolset crafted by **Omurcek**, prinarily focused on chat
+  A web based toolset crafted by **Omurcek**, prinarily focused on chat
 
 # Website - https://omurcekweb.pythonanywhere.com/chatbot
  
