@@ -31,6 +31,7 @@ Omurcekai works on:
 - 🪟 Windows 7  
 - 🐧 Linux (Tested on major distros)
 - 📱 Termux (Android)
+- 📱 APK/ABB Android
 - 🍎 Mac Os (Not tested. It could work. Could someone test it for me!!!)
 
 > ⚠️ **Python is required** for Lapidary Terminal to function.  
