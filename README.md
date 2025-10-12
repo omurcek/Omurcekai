@@ -34,7 +34,7 @@ Omurcekai works on:
 - 📱 APK/ABB (Android)
 - 🍎 Mac Os (Not tested. It could work. Could someone test it for me!!!)
 
-> ⚠️ **Python is required** for Lapidary Terminal to function.  
+> ⚠️ **Python is required** for OmurceKAI to function.  
 Make sure it's installed and added to your system PATH.
 
 ---
