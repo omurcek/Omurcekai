@@ -3,7 +3,7 @@
   A web based toolset crafted by **Omurcek**, primarily focused on chat
 
 # Website - https://omurcekweb.pythonanywhere.com/chatbot
- 
+ ![Some Talk](https://github.com/omurcek/Omurcekai/blob/main/sometalk.png)
  ## 📦 Features
 
 Omurcek ai includes 1 main Reason:
