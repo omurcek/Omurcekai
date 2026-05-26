@@ -4,91 +4,10 @@ import random
 import requests
 from flask import Flask, request, jsonify, render_template_string
 
+from src.engine import LehnLM
+from src.chatbot import OmurcekAI
+
 app = Flask(__name__)
-
-class LehnLM:
-    def __init__(self):
-        self.texts = []
-        self.words = set()
-
-    def add(self, text):
-        if text not in self.texts:
-            self.texts.append(text)
-            self.words.update(text.lower().split())
-
-    def process(self, p, maxlength=180, responses=30, spaces=None):
-        response_mosts = {}
-        lenp = len(p)
-        spaces = max(8, min(32, lenp // 4)) if spaces is None else spaces
-
-        for text in self.texts:
-            mosts = {}
-            lentext = len(text)
-            step = max(1, lentext // spaces)
-
-            for n in range(0, lentext, step):
-                start = max(0, n - lenp)
-                t = text[start:start + lenp]
-                from difflib import SequenceMatcher
-                s = SequenceMatcher(None, t.lower(), p.lower()).ratio()
-                candidate = text[start + lenp:start + lenp + maxlength]
-
-                if len(candidate) < 5:
-                    continue
-
-                score = s + (len(candidate) / maxlength) * 0.3
-                while score in mosts: score += 1e-14
-                mosts[score] = candidate
-
-            for score, resp in mosts.items():
-                while score in response_mosts: score += 1e-14
-                response_mosts[score] = resp
-
-        sorted_responses = sorted(response_mosts.items(), key=lambda x: x[0], reverse=True)
-        return [resp for _, resp in sorted_responses[:responses]]
-
-    def restore(self, text, minseq=0.65):
-        words = text.split()
-        restored = []
-        for word in words:
-            low = word.lower()
-            if low in self.words:
-                restored.append(word)
-                continue
-            best, best_score = None, 0
-            from difflib import SequenceMatcher
-            for known in self.words:
-                sim = SequenceMatcher(None, low, known).ratio()
-                if sim > best_score and sim >= minseq:
-                    best_score, best = sim, known
-            restored.append(best.capitalize() if best and word[0].isupper() else best or word)
-        return " ".join(restored)
-
-class OmurcekAI:
-    def __init__(self):
-        self.responses = []
-        self.load()
-
-    def load(self):
-        if os.path.exists("CHATBOT_DATA.json"):
-            try:
-                with open("CHATBOT_DATA.json", "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    self.responses = [r.strip() for r in data.get("responses", []) if len(r.strip()) > 12]
-                print(f"{len(self.responses)} kaliteli yanıt yüklendi.")
-            except Exception as e:
-                print("JSON okuma hatası:", e)
-                self.responses = []
-
-    def save(self):
-        with open("CHATBOT_DATA.json", "w", encoding="utf-8") as f:
-            json.dump({"responses": self.responses}, f, ensure_ascii=False, indent=2)
-
-    def train(self, text):
-        clean = text.strip()
-        if clean and len(clean) > 12 and clean not in self.responses:
-            self.responses.append(clean)
-            engine.add(clean)  
 
 chatbot = OmurcekAI()
 engine = LehnLM()
@@ -97,20 +16,17 @@ for resp in chatbot.responses:
 
 if len(chatbot.responses) < 10:
     ornekler = [
-        "Merhaba! Ben OmurcekAI, seninle sohbet etmek için buradayım.",
-        "Nasıl yardımcı olabilirim? Her konuda konuşabiliriz!",
-        "LehnLM motoru sayesinde artık çok daha doğal cevaplar veriyor!",
-        "Bir web sitesi okumamı ister misin? Sadece 'fetch https://ornek.com' yaz yeter.",
-        "Sen ne kadar çok konuşursan ben de o kadar akıllanıyorum!",
+        "Merhaba! Ben OmurcekAI, seninle sohbet etmek icin buradayim.",
+        "Nasil yardimci olabilirim? Her konuda konusabiliriz!",
+        "LehnLM motoru sayesinde artik cok daha dogal cevaplar veriyor!",
+        "Bir web sitesi okumami ister misin? Sadece 'fetch https://ornek.com' yaz yeter.",
+        "Sen ne kadar cok konusursan ben de o kadar akillaniyorum!",
     ]
     for o in ornekler:
         chatbot.train(o)
     chatbot.save()
 
-
-@app.route("/chatbot")
-def chatbot_page():
-    return """<!DOCTYPE html>
+HTML_PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>
  <meta charset="UTF-8">
@@ -164,25 +80,9 @@ def chatbot_page():
   .temp-row{display:flex;align-items:center;gap:12px;justify-content:center}
   select{appearance:none;-webkit-appearance:none;-moz-appearance:none;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,215,0,.12);background:linear-gradient(180deg,#0b0b0b,#0d0d0d);color:#FFD700;cursor:pointer;font-weight:600}
   .select-wrap{position:relative}
-  .select-wrap:after{content:"▾";position:absolute;right:12px;top:9px;color:#FFD700;pointer-events:none}
+  .select-wrap:after{content:"\25BE";position:absolute;right:12px;top:9px;color:#FFD700;pointer-events:none}
   select:hover{box-shadow:0 8px 26px rgba(255,215,0,.06)}
   select:focus{outline:none;box-shadow:0 0 30px rgba(255,215,0,.12)}
-
-  /* Butonlar */
-  .manifest-row{margin-top:10px;}
-  .manifest-button{padding:10px 18px;border:none;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FFB700);color:#000;font-weight:700;cursor:pointer;transition:transform 0.15s,box-shadow 0.2s;box-shadow:0 0 18px rgba(255,215,0,0.08);}
-  .manifest-button:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(255,215,0,0.18);}
-  .manifest-button:active{transform:translateY(0);box-shadow:0 0 14px rgba(255,215,0,0.25);}
-
-  .buttons-row {display:flex;justify-content:center;align-items:center;gap:12px;margin-top:10px;}
-
-  .usermap-button {background:linear-gradient(135deg,#00aaff,#0077ff);color:#fff;box-shadow:0 0 18px rgba(0,136,255,0.25);}
-  .usermap-button:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(0,136,255,0.45);}
-  .usermap-button:active{transform:translateY(0);box-shadow:0 0 14px rgba(0,136,255,0.5);}
-
-.privacy-button {background:linear-gradient(135deg,#BF2C2C,#B01E1E);color:#fff;box-shadow:0 0 18px rgba(204, 14, 14, 0.8);}
-.privacy-button:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(204, 14, 14, 0.8);}
-.privacy-button:active{transform:translateY(0);box-shadow:0 0 14px rgba(204, 14, 14, 0.8);}
 
   @keyframes glowPulse{from{box-shadow:0 0 8px rgba(255,215,0,.12)}to{box-shadow:0 0 28px rgba(255,215,0,.28)}}
 
@@ -198,8 +98,8 @@ def chatbot_page():
 <body>
  <div class="container">
   <div class="header-row">
-   <h1>OmurcekAI 🗁</h1>
-   <div class="warning">⚠ This is an AI — we can't control what it learns or says. Responsibility is not ours.</div>
+   <h1>OmurcekAI</h1>
+   <div class="warning">This is an AI - we can't control what it learns or says. Responsibility is not ours.</div>
    <div class="description">Train, chat & vibe with this AI. Use <b>fetch [URL]</b>!</div>
   </div>
 
@@ -211,7 +111,7 @@ def chatbot_page():
   </div>
 
   <div class="settings">
-   <div class="settings-header">⚙ Chat Settings</div>
+   <div class="settings-header">Chat Settings</div>
 
    <div class="train-row">
     <div class="train-label">Train the bot with my messages:</div>
@@ -223,18 +123,12 @@ def chatbot_page():
    <div class="temp-row">
     <div class="select-wrap"><select id="temperatureSelect"><option value="0.0">0.0 (Precise)</option><option value="0.15">0.15 (Smart)</option><option value="0.4" selected>0.4 (Default)</option><option value="0.7">0.7 (Creative)</option><option value="1.0">1.0 (Wild)</option></select></div>
    </div>
-
-   <div class="manifest-row buttons-row">
-    <button id="manifestBtn" class="manifest-button">Manifest</button>
-    <button id="userMapBtn" class="manifest-button usermap-button">User Map</button>
-    <button id="privacyBtn" class="manifest-button privacy-button">Privacy Policy</button>
-   </div>
   </div>
  </div>
 
  <div id="modalOverlay" class="modal-overlay">
   <div class="modal">
-   <h3>Important — Read before using</h3>
+   <h3>Important - Read before using</h3>
    <p>This is an AI. We cannot control what it learns or says. We are not responsible for outputs generated by this bot.</p>
    <div class="controls">
     <label><input type="checkbox" id="dontShow"> Don't show again</label>
@@ -303,22 +197,19 @@ def chatbot_page():
     document.getElementById('sendButton').click();
    }
   });
-
-  document.getElementById('manifestBtn').addEventListener('click', () => {
-   window.location.href = '/chatbot/manifest';
-  });
-
-  document.getElementById('userMapBtn').addEventListener('click', () => {
-   window.location.href = '/chatbot/map';
-  });
-
-   document.getElementById('privacyBtn').addEventListener('click', () => {
-   window.location.href = '/privacy';
-  });
  </script>
 </body>
-</html>
-"""
+</html>"""
+
+
+@app.route("/")
+def home():
+    return render_template_string(HTML_PAGE)
+
+
+@app.route("/chatbot")
+def chatbot_page():
+    return render_template_string(HTML_PAGE)
 
 
 @app.route("/chatbot/api/free/use", methods=["POST"])
@@ -331,7 +222,7 @@ def chatbot_api():
     temperature = float(data.get("temperature", 0.4))
 
     if not text:
-        return "Boş mesaj gönderme lütfen."
+        return "Bos mesaj gonderme lutfen."
 
     if text.lower().startswith("fetch "):
         try:
@@ -340,12 +231,12 @@ def chatbot_api():
                 r = requests.get(url, timeout=8)
                 cevap = r.text.replace("\n", " ").replace("\r", " ")[:1400] + ("..." if len(r.text) > 1400 else "")
             else:
-                cevap = "Geçerli URL gir (http:// veya https:// ile başlasın)"
+                cevap = "Gecerli URL gir (http:// veya https:// ile baslasin)"
         except:
-            cevap = "Siteye ulaşılamadı."
+            cevap = "Siteye ulasilamadi."
     else:
         if not chatbot.responses:
-            cevap = "Henüz bir şey öğrenmedim, bana bir şeyler söyle!"
+            cevap = "Henuz bir sey ogrenmedim, bana bir seyler soyle!"
         elif not use_lehnlm:
             cevap = random.choice(chatbot.responses)
         else:
@@ -365,5 +256,5 @@ def chatbot_api():
 
 
 if __name__ == "__main__":
-    print("OmurcekAI ÇALIŞIYOR → http://127.0.0.1:5000")
+    print("OmurcekAI running on http://127.0.0.1:5000")
     app.run(host="0.0.0.0", port=5000, debug=False)
