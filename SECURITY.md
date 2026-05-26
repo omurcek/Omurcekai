@@ -1,17 +1,11 @@
 # Security Policy
 
-## Supported Versions.
+## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| OmurcekAI.apk| :white_check_mark: |
-
-| OmurcekAILatest.zip | :white_check_mark: |
-
+| Version | Supported |
+| ------- | --------- |
+| latest  | yes       |
 
 ## Reporting a Vulnerability
 
-i work on this project but report what u find bad buggy or needs enchancement
-
-just write to me or email to me or pull requests
-or you could email me to contribute if you can 
+Report bugs or security issues via GitHub Issues or email.
