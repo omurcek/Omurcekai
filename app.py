@@ -2,7 +2,7 @@ import os
 import json
 import random
 import requests
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template_string
 
 from src.engine import LehnLM
 from src.chatbot import OmurcekAI
@@ -26,10 +26,190 @@ if len(chatbot.responses) < 10:
         chatbot.train(o)
     chatbot.save()
 
+HTML_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>OmurcekAI - ChatBot</title>
+ <script async src="https://www.googletagmanager.com/gtag/js?id=G-RD06WE730X"></script>
+<script>
+ window.dataLayer = window.dataLayer || [];
+ function gtag(){dataLayer.push(arguments);}
+ gtag('js', new Date());
+ gtag('config', 'G-RD06WE730X');
+</script>
+ <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+ <style>
+  html, body {height:100%; margin:0; padding:0;}
+  body {font-family:'Roboto',sans-serif;background:#000;color:#FFD700;display:flex;justify-content:center;align-items:center;}
+
+  .container{width:100%;height:100%;max-width:1920px;max-height:1080px;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;border-radius:12px;box-shadow:0 0 30px rgba(255,215,0,.08);background:linear-gradient(180deg,#050505 0%, #0b0b0b 100%);padding:28px;box-sizing:border-box;}
+
+  .header-row{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:6px}
+  h1{margin:6px 0 0;color:#FFD700;text-shadow:0 0 10px rgba(255,215,0,.15);font-size:28px}
+
+  .warning{max-width:980px;width:94%;text-align:center;font-size:0.92rem;color:#ffb3b3;background:rgba(255,85,85,0.03);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,85,85,0.08);box-shadow:inset 0 1px 0 rgba(255,85,85,0.02);}
+  .description{margin-top:6px;text-align:center;font-size:.92rem;padding:6px;color:#FFD700;opacity:.95}
+
+  .messages{flex-grow:1;width:100%;background:#0d0d0d;border:1px solid rgba(255,215,0,0.06);overflow-y:auto;padding:12px;margin:18px 0;border-radius:10px;box-shadow:inset 0 0 20px rgba(255,215,0,.02);min-height:220px}
+  .message-user{text-align:right;background:linear-gradient(135deg,#FFD700,#FFB700);color:#000;padding:8px 12px;margin:8px 0;border-radius:15px 15px 0 15px;max-width:70%;margin-left:auto;word-wrap:break-word;box-shadow:0 0 12px rgba(255,215,0,.15);}
+  .message-bot{text-align:left;background:rgba(255,215,0,.06);color:#FFD700;padding:8px 12px;margin:8px 0;border-radius:15px 15px 15px 0;max-width:70%;margin-right:auto;word-wrap:break-word;box-shadow:0 0 8px rgba(255,215,0,.08);}
+
+  .input-container{display:flex;justify-content:space-between;width:100%;gap:12px;margin-bottom:8px}
+  .input-field{flex-grow:1;padding:12px;border:1px solid rgba(255,215,0,.12);border-radius:8px;background:transparent;color:#FFD700;transition:box-shadow .25s, background .25s;font-size:15px}
+  .input-field:focus{outline:none;box-shadow:0 0 28px rgba(255,215,0,.18);background:#0b0b0b}
+  .input-field.typing{box-shadow:0 0 28px rgba(255,215,0,.28);}
+
+  .send-button{width:110px;padding:10px 12px;background:#FFD700;border:none;border-radius:8px;cursor:pointer;color:#000;font-weight:700;transition:transform .14s,box-shadow .18s;font-size:15px}
+  .send-button:hover{transform:translateY(-2px);box-shadow:0 6px 30px rgba(255,215,0,.18)}
+  .send-button:active{animation:glowPulse .9s ease}
+
+  .settings{width:100%;margin-top:12px;border-top:1px dashed rgba(255,215,0,.06);padding-top:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .settings-header{color:#FFD700;font-weight:600;margin-bottom:0}
+  .train-row{display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap}
+  .train-row .train-label{color:#FFD700;font-size:15px;margin:0}
+
+  .toggle-switch{position:relative;display:inline-block;width:60px;height:34px}
+  .toggle-switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#222;border:1px solid rgba(255,215,0,.12);transition:.35s;border-radius:34px}
+  .slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:3px;background:#FFD700;transition:.35s;border-radius:50%;box-shadow:0 6px 18px rgba(255,215,0,.10)}
+  .toggle-switch input:checked + .slider{background:#FFD700;box-shadow:0 0 28px rgba(255,215,0,.16)}
+  .toggle-switch input:checked + .slider:before{transform:translateX(26px);background:#000;box-shadow:0 10px 30px rgba(255,215,0,.18);animation:glowPulse 1.4s infinite alternate}
+
+  .temp-row{display:flex;align-items:center;gap:12px;justify-content:center}
+  select{appearance:none;-webkit-appearance:none;-moz-appearance:none;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,215,0,.12);background:linear-gradient(180deg,#0b0b0b,#0d0d0d);color:#FFD700;cursor:pointer;font-weight:600}
+  .select-wrap{position:relative}
+  .select-wrap:after{content:"\25BE";position:absolute;right:12px;top:9px;color:#FFD700;pointer-events:none}
+  select:hover{box-shadow:0 8px 26px rgba(255,215,0,.06)}
+  select:focus{outline:none;box-shadow:0 0 30px rgba(255,215,0,.12)}
+
+  @keyframes glowPulse{from{box-shadow:0 0 8px rgba(255,215,0,.12)}to{box-shadow:0 0 28px rgba(255,215,0,.28)}}
+
+  .modal-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:1200}
+  .modal{width:min(720px,92%);background:linear-gradient(180deg,#060606,#0b0b0b);border:1px solid rgba(255,215,0,.12);padding:22px;border-radius:12px;text-align:center;color:#FFD700;box-shadow:0 10px 50px rgba(0,0,0,.6)}
+  .modal h3{margin:0 0 8px;color:#fff}
+  .modal p{color:#ffd6d6;margin:0 0 14px}
+  .modal .btn{display:inline-block;padding:10px 16px;border-radius:10px;background:#FFD700;color:#000;border:none;cursor:pointer;font-weight:700;box-shadow:0 8px 30px rgba(255,215,0,.12)}
+  .modal .controls{margin-top:8px;display:flex;gap:12px;align-items:center;justify-content:center}
+  .modal label{color:#ffd6d6;font-size:14px}
+ </style>
+</head>
+<body>
+ <div class="container">
+  <div class="header-row">
+   <h1>OmurcekAI</h1>
+   <div class="warning">This is an AI - we can't control what it learns or says. Responsibility is not ours.</div>
+   <div class="description">Train, chat & vibe with this AI. Use <b>fetch [URL]</b>!</div>
+  </div>
+
+  <div id="messages" class="messages"></div>
+
+  <div class="input-container">
+   <input type="text" id="userInput" placeholder="Type your message..." class="input-field" autocomplete="off">
+   <button id="sendButton" class="send-button">Send</button>
+  </div>
+
+  <div class="settings">
+   <div class="settings-header">Chat Settings</div>
+
+   <div class="train-row">
+    <div class="train-label">Train the bot with my messages:</div>
+    <label class="toggle-switch"><input type="checkbox" id="trainToggle" checked><span class="slider"></span></label>
+    <div class="train-label">LehnLM:</div>
+    <label class="toggle-switch"><input type="checkbox" id="lehnlmToggle"><span class="slider"></span></label>
+   </div>
+
+   <div class="temp-row">
+    <div class="select-wrap"><select id="temperatureSelect"><option value="0.0">0.0 (Precise)</option><option value="0.15">0.15 (Smart)</option><option value="0.4" selected>0.4 (Default)</option><option value="0.7">0.7 (Creative)</option><option value="1.0">1.0 (Wild)</option></select></div>
+   </div>
+  </div>
+ </div>
+
+ <div id="modalOverlay" class="modal-overlay">
+  <div class="modal">
+   <h3>Important - Read before using</h3>
+   <p>This is an AI. We cannot control what it learns or says. We are not responsible for outputs generated by this bot.</p>
+   <div class="controls">
+    <label><input type="checkbox" id="dontShow"> Don't show again</label>
+   </div>
+   <div style="margin-top:14px"><button id="understandBtn" class="btn">I understand</button></div>
+  </div>
+ </div>
+
+ <script>
+  const modal = document.getElementById('modalOverlay');
+  const dontShow = localStorage.getItem('hideAiWarning');
+  if (!dontShow) {
+   modal.style.display = 'flex';
+  }
+  document.getElementById('understandBtn').addEventListener('click', ()=>{
+   if(document.getElementById('dontShow').checked){
+    localStorage.setItem('hideAiWarning', '1');
+   }
+   modal.style.display='none';
+  });
+
+  document.getElementById('sendButton').addEventListener('click', function(){
+   const userInput = document.getElementById('userInput');
+   const message = userInput.value;
+   if (message.trim() === '') return;
+   const messagesDiv = document.getElementById('messages');
+   messagesDiv.innerHTML += `<div class="message-user">${message}</div>`;
+   messagesDiv.scrollTop = messagesDiv.scrollHeight;
+   userInput.value = '';
+
+   const train = document.getElementById('trainToggle').checked;
+   const lehnlm = document.getElementById('lehnlmToggle').checked;
+   const temperature = document.getElementById('temperatureSelect').value;
+
+   fetch('/chatbot/api/free/use', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: message, train: train, lehnlm: lehnlm, temperature: parseFloat(temperature) })
+   })
+   .then(r => r.text())
+   .then(d => {
+    messagesDiv.innerHTML += `<div class="message-bot">${d}</div>`;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+   })
+   .catch(e => {
+    messagesDiv.innerHTML += `<div class="message-bot" style="color:red;">Error: ${e.message}</div>`;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+   });
+
+   const btn = document.getElementById('sendButton');
+   btn.classList.add('active');
+   setTimeout(()=>btn.classList.remove('active'), 800);
+  });
+
+  let typingTimer;
+  const input = document.getElementById('userInput');
+  input.addEventListener('input', ()=>{
+   input.classList.add('typing');
+   clearTimeout(typingTimer);
+   typingTimer = setTimeout(()=>{ input.classList.remove('typing'); }, 800);
+  });
+
+  input.addEventListener('keydown', (e)=>{
+   if(e.key === 'Enter'){
+    e.preventDefault();
+    document.getElementById('sendButton').click();
+   }
+  });
+ </script>
+</body>
+</html>"""
+
+
+@app.route("/")
+def home():
+    return render_template_string(HTML_PAGE)
+
 
 @app.route("/chatbot")
 def chatbot_page():
-    return render_template("chat.html")
+    return render_template_string(HTML_PAGE)
 
 
 @app.route("/chatbot/api/free/use", methods=["POST"])
